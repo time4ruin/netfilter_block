@@ -24,9 +24,12 @@ int dump(unsigned char *buf, int size)
       
       i=0;
       if (buf[i] == 0x45){ //if ipv4
+            int TotalLength = (buf[2] << 8) + buf[3];
             if (buf[i + 9] == 0x6){ //if tcp
                   i += 20; //goto start of tcp
-                  i += (buf[i + 12] >> 4) * 4; //go to start of http
+                  int TCPLength = (buf[i + 12] >> 4) * 4;
+                  if (TotalLength - TCPLength - 20 == 0) return 1; //if no TCP data
+                  i += TCPLength; //go to start of http
                   int ok=0;
                   for (int j=0;j<6;j++){
                         if (memcmp(&buf[i], http_method[j], http_methodlen[j])==0){
